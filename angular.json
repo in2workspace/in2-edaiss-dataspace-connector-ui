@@ -159,7 +159,7 @@
         }
       }
     },
-    "@eclipse-edc/dashboard-core": {
+    "@in2workspace/edaiss-dashboard-core": {
       "projectType": "library",
       "root": "projects/dashboard-core",
       "sourceRoot": "projects/dashboard-core/src",
