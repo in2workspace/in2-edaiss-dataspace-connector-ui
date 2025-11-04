@@ -1,0 +1,62 @@
+name: publish-angular-lib
+
+#on:
+#  push:
+#    branches:
+#      - main
+on: workflow_dispatch
+
+env:
+  LIB_NAME: '@in2workspace/edaiss-dashboard-core' # Nombre del proyecto/librería tal como aparece en angular.json
+  NODE_VERSION: 20
+  #REGISTRY_URL: https://registry.npmjs.org/
+  REGISTRY_URL: https://npm.pkg.github.com/ # URL del registro donde se va a publicar el paquete
+
+permissions:
+# Permisos necesarios para leer el repo y publicar paquetes
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Paso 1: Clonar el repositorio
+      - name: Checkout
+        uses: actions/checkout@v4
+      # Paso 2: Configurar Node.js y el registro de npm
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: ${{ env.REGISTRY_URL }}
+          cache: npm
+      # Paso 3: Instalar dependencias 
+      - name: Install deps
+        run: npm ci
+      # Paso 4: Compilar la librería Angular
+      - name: Build library
+        run: npx ng build $LIB_NAME # $LIB_NAME viene de angular.json -> projects["@in2workspace/edaiss-dashboard-core"]
+      # Paso 5: Sincronizar versión desde la etiqueta (tag) de Git
+      - name: Sync version from tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          PKG=dist/@eclipse-edc/dashboard-core/package.json
+          jq --arg v "$VERSION" '.version=$v' "$PKG" > "$PKG.tmp" && mv "$PKG.tmp" "$PKG"
+      # Paso 6: Asegurar configuración de publicación para GitHub Packages
+      - name: Ensure publishConfig
+        run: |
+          PKG=dist/@eclipse-edc/dashboard-core/package.json
+          jq '.publishConfig = (.publishConfig // {}) | .publishConfig.access = "public" | .private=false' "$PKG" > "$PKG.tmp" && mv "$PKG.tmp" "$PKG"
+
+      # Paso 7: Publicar en GitHub Packages
+      - name: Publish to GitHub Packages
+        working-directory: dist/@eclipse-edc/dashboard-core # Debe ser el directorio donde está package.json, no el archivo
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      
