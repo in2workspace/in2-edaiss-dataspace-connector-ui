@@ -127,3 +127,26 @@ The output library (dist/@eclipse-edc/dashboard-core) will now contain your cust
 - Always test your custom component after overwriting to ensure no regressions.
 
 - Document your overrides in the library’s changelog for visibility.
+
+# Run the dashboard
+
+## Docker
+
+Commands:
+
+Publichealth: `docker build --build-arg ORG_CONFIG=publichealth -t eclipse-edc/data-dashboard:publichealth .`
+
+Analytics: `docker build --build-arg ORG_CONFIG=analytics -t eclipse-edc/data-dashboard:analytics .`
+
+Healthcare: `docker build --build-arg ORG_CONFIG=healthcare -t eclipse-edc/data-dashboard:healthcare .`
+
+## Angular dev server
+
+To run the data dashboard, you have to execute the following commands. The dashboard will be available at `http://localhost:4200`
+
+1. `npm install`
+2. `npm run lib-start`
+3. Evironments:
+   1. Publichealth: `npm run start-publichealth`
+   2. Analytics: `npm run start-analytics`
+   3. Healthcare: `npm run start-healthcare`
